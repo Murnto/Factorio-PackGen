@@ -46,7 +46,8 @@ def load(csv):
 
             if not is_crap:
                 if _conf.has_option(sec, k):
-                    print 'Overwriting locale %s (%r -> %r)' % (k, _conf.get(sec, k), v)
+                    if _conf.get(sec, k).lower() != v.lower():
+                        print 'Overwriting locale %s (%r -> %r)' % (k, _conf.get(sec, k), v)
 
                 _conf.set(sec, k, v)
             else:

@@ -2,7 +2,6 @@ import json
 import locale
 import os
 import errno
-import pyaml
 
 from factorio_lua import FactorioState
 
@@ -48,7 +47,7 @@ def load_pack(packid, packtitle, factorio_path, mods_path=None):
     mkdir_p(pack_dir)
 
     with open('%s/out' % pack_dir, 'w') as f:
-        f.write(json.dumps(data))
+        f.write(json.dumps(data, indent=4))
 
     fs.save_gfx('%s/icon' % pack_dir)
     locale.save('%s/localedump.cfg' % pack_dir)
