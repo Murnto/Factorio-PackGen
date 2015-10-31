@@ -1,0 +1,140 @@
+import os
+import shutil
+import errno
+from lupa import LuaRuntime
+import locale
+from modlist import ModList
+
+
+class FactorioState(object):
+    LUA_LIBS = ['util', 'dataloader', 'autoplace_utils', 'story', 'defines']  # , 'builder']
+
+    def __init__(self, factorio_path):
+        super(FactorioState, self).__init__()
+        self.factorio_path = factorio_path
+        self.lua = LuaRuntime(unpack_returned_tuples=True)
+        self.lua.execute("""
+local old_require = require
+function require (module)
+    local ok, m = pcall (old_require, module)
+    -- if ok then
+        return m
+    -- end
+    -- try getting module from internal strings
+end
+        """)
+        # self.lua.execute('package.path = "./?.lua;" .. package.path')
+        print list(self.lua.globals()['package']['loaded'])
+        self.modlist = ModList()
+
+        self._load_libs(self.lua)
+        self.modlist.add_mod('%s/data/base/' % self.factorio_path)
+
+    @staticmethod
+    def table_to_dict(tab):
+        tab_type = type(tab)
+        ret = {}
+        for k, v in tab.items():
+            if type(v) is tab_type:
+                ret[k] = FactorioState.table_to_dict(v)
+            else:
+                ret[k] = v
+        return ret
+
+    def _load_libs(self, lua):
+        lib_dir = '%s/data/core/lualib/' % self.factorio_path
+        for lib in FactorioState.LUA_LIBS:
+            FactorioState.require(lua, lib_dir, lib)
+        FactorioState.require(lua, '%s/data/core' % self.factorio_path, 'data')
+
+    @staticmethod
+    def require(lua, path, module):
+        # print 'Load %s from %s' % (module, path)
+        os.chdir(path)
+        if not lua.require(module):
+            raise RuntimeError('Require failed: %s in %s' % (module, path))
+
+    def load(self, path, module):
+        # print 'Load %s from %s' % (module, path)
+        os.chdir(path)
+        with open('%s/%s.lua' % (path, module)) as f:
+            if not self.lua.execute(f.read()):
+                # raise RuntimeError('Require failed: %s in %s' % (module, path))
+                pass
+
+    def get_data(self):
+        return FactorioState.table_to_dict(self.lua.globals()['data']['raw'])
+
+    def load_mods(self):
+        # load locale
+        for mod in self.modlist.mod_order:
+            locale_dir = '%s/locale/en/' % mod.path
+            if os.path.exists(locale_dir):
+                for fn in os.listdir(locale_dir):
+                    fn = os.path.join(locale_dir, fn)
+                    if os.path.isfile(fn) and fn.endswith('.cfg'):
+                        # print 'load', fn
+                        locale.load(fn)
+
+        for mod in self.modlist.mod_order:
+            print 'Load %s' % mod.title
+            if os.path.exists(os.path.join(mod.path, 'data.lua')):
+                self.load_mod(mod.path, 'data')
+
+        for mod in self.modlist.mod_order:
+            print 'Load %s' % mod.title
+            if os.path.exists(os.path.join(mod.path, 'data-updates.lua')):
+                self.load_mod(mod.path, 'data-updates')
+
+        for mod in self.modlist.mod_order:
+            print 'Load %s' % mod.title
+            if os.path.exists(os.path.join(mod.path, 'data-final-fixes.lua')):
+                self.load_mod(mod.path, 'data-final-fixes')
+
+    def load_mod(self, path, name):
+        important = [u'table', u'io', u'math', u'debug', u'package', u'_G', u'python', u'string', u'os', u'coroutine',
+                     u'bit32', u'util', u'autoplace_utils']
+        for p in list(self.lua.globals()['package']['loaded']):
+            if p not in important:
+                # print 'rem', p
+                del self.lua.globals()['package']['loaded'][p]
+        # print self.lua.eval('package.path')
+        self.require(self.lua, path, name)
+
+    def save_gfx(self, path, data=None):
+        if data is None:
+            print 'got data'
+            data = self.get_data()
+
+        for k, v in data.items():
+            if type(v) is dict:
+                self.save_gfx(path, v)
+                pass
+            elif k == 'icon':
+                icon_path = data['icon'].split('/')
+
+                if icon_path[0] not in self.modlist.path_map:
+                    print 'Unkown content path %s for %s/%s' % (icon_path[0], data['type'], data['name'])
+                    continue
+
+                icon_path[0] = self.modlist.path_map[icon_path[0]]
+                icon_path = '/'.join(icon_path)
+
+                out_dir = '%s/%s' % (path, data['type'])
+                out_path = '%s/%s.png' % (out_dir, data['name'])
+                FactorioState.mkdir_p(out_dir)
+
+                if os.path.exists(out_path):
+                    print 'Overwriting %s/%s' % (data['type'], data['name'])
+
+                shutil.copy2(icon_path, out_path)
+
+    @staticmethod
+    def mkdir_p(path):
+        try:
+            os.makedirs(path)
+        except OSError as exc:  # Python >2.5
+            if exc.errno == errno.EEXIST and os.path.isdir(path):
+                pass
+            else:
+                raise
