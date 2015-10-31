@@ -1,18 +1,22 @@
 import os
 import shutil
+
 from lupa import LuaRuntime
-import locale
-from modlist import ModList
+
+from factorio_locale import FactorioLocale
+from factorio_modlist import FactorioModList
 from util import mkdir_p
 
 
 class FactorioState(object):
     LUA_LIBS = ['util', 'dataloader', 'autoplace_utils', 'story', 'defines']
 
-    def __init__(self, factorio_path):
+    def __init__(self, factorio_path, locale: FactorioLocale):
         super(FactorioState, self).__init__()
         self.factorio_path = factorio_path
+        self.locale = locale
         self.lua = LuaRuntime(unpack_returned_tuples=True)
+
         self.lua.execute("""
 local old_require = require
 function require (module)
@@ -23,8 +27,7 @@ function require (module)
     -- try getting module from internal strings
 end
         """)
-        print(list(self.lua.globals()['package']['loaded']))
-        self.modlist = ModList()
+        self.modlist = FactorioModList()
 
         self._load_libs(self.lua)
         self.modlist.add_mod('%s/data/base/' % self.factorio_path)
@@ -63,7 +66,7 @@ end
                 for fn in os.listdir(locale_dir):
                     fn = os.path.join(locale_dir, fn)
                     if os.path.isfile(fn) and fn.endswith('.cfg'):
-                        locale.load(fn)
+                        self.locale.load(fn)
 
         for mod in self.modlist.mod_order:
             print('Load %s' % mod.title)

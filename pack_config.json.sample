@@ -1,0 +1,13 @@
+[
+  {
+    "name": "sample-pack",
+    "title": "Sample Pack for F11",
+    "factorio_path": "/path/to/factorio_0.11.22"
+  },
+  {
+    "name": "sample-pack-w-alt-mods",
+    "title": "Sample pack for F12 with alternate mods folder location",
+    "factorio_path": "/path/to/factorio_0.12.15",
+    "mods_path": "/path/to/alternate-mods-folder"
+  }
+]

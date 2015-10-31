@@ -1,9 +1,9 @@
-from mod import Mod
+from factorio_mod import FactorioMod
 
 
-class ModList(object):
+class FactorioModList(object):
     def __init__(self):
-        super(ModList, self).__init__()
+        super(FactorioModList, self).__init__()
         self.mods = []
         self.mod_order = []
         self._loaded_names = []
@@ -11,7 +11,7 @@ class ModList(object):
         self.path_map = {}
 
     def add_mod(self, path):
-        m = Mod(path)
+        m = FactorioMod(path)
         self.mods.append(m)
         self._all_names.append(m.name)
         self.path_map['__%s__' % m.name] = m.path
@@ -78,7 +78,7 @@ class ModList(object):
                         continue
 
                     dependee = self.get_mod_by_name(dep[0])
-                    ver_comp = ModList.compare_versions(dep[2], dependee.version)
+                    ver_comp = FactorioModList.compare_versions(dep[2], dependee.version)
 
                     if dep[1] == u'=':
                         if ver_comp != 0:

@@ -1,7 +1,7 @@
 import json
 
 
-class Mod:
+class FactorioMod:
     def __init__(self, path):
         self.path = path
 
