@@ -7,7 +7,7 @@ from util import mkdir_p
 
 
 class FactorioState(object):
-    LUA_LIBS = ['util', 'dataloader', 'autoplace_utils', 'story', 'defines']  # , 'builder']
+    LUA_LIBS = ['util', 'dataloader', 'autoplace_utils', 'story', 'defines']
 
     def __init__(self, factorio_path):
         super(FactorioState, self).__init__()
@@ -85,9 +85,8 @@ end
                      u'bit32', u'util', u'autoplace_utils']
         for p in list(self.lua.globals()['package']['loaded']):
             if p not in important:
-                # print 'rem', p
                 del self.lua.globals()['package']['loaded'][p]
-        # print self.lua.eval('package.path')
+
         self.require(self.lua, path, name)
 
     def save_gfx(self, path, data=None):
@@ -103,7 +102,7 @@ end
                 icon_path = data['icon'].split('/')
 
                 if icon_path[0] not in self.modlist.path_map:
-                    print('Unkown content path %s for %s/%s' % (icon_path[0], data['type'], data['name']))
+                    print('Unknown content path %s for %s/%s' % (icon_path[0], data['type'], data['name']))
                     continue
 
                 icon_path[0] = self.modlist.path_map[icon_path[0]]
@@ -117,4 +116,3 @@ end
                     print('Overwriting %s/%s' % (data['type'], data['name']))
 
                 shutil.copy2(icon_path, out_path)
-
