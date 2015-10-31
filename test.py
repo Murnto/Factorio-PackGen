@@ -61,11 +61,6 @@ def load_pack(packid, packtitle, factorio_path, mods_path=None):
     "mods": %s
 }""" % (packid, '', packtitle, json.dumps(fs.modlist._loaded_names)))
 
-        # print "Loaded"
-        # print "Converted"
-        # print pyaml.dump(data)
-        # print json.dumps(data)
-
 
 if __name__ == '__main__':
     load_pack('base-f11', 'Base Game F11', '/media/data/factorio/factorio_0.11.22')
@@ -98,10 +93,3 @@ if __name__ == '__main__':
               '/media/data/factorio/mods/dytech-f11')
     load_pack('dytech-f12', 'DyTech F12', '/media/data/factorio/factorio_0.12.15',
               '/media/data/factorio/mods/dytech-f12')
-
-    # load_pack('dozing', 'Mods I use', '/media/data/factorio/factorio_0.11.22 (mods) (play)')
-    # load_pack('shadows', 'ShadowMegaModpack', '/media/data/factorio/factorio_0.11.22 (mods)')
-    # load_pack('momods', 'MoMods', '/media/data/factorio/factorio_0.11.22', '/media/data/factorio/mods/momods')
-    # load_pack('treefarm', 'Treefarm', '/media/data/factorio/factorio_0.11.22', '/media/data/factorio/mods/treefarm')
-#    load_pack('fmod', 'F mod', '/media/data/factorio/factorio_0.11.22', '/media/data/factorio/mods/fmod')
-#    load_pack('5dim', '5dim', '/media/data/factorio/factorio_0.11.22', '/media/data/factorio/mods/5dim')

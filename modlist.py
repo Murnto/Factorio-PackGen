@@ -27,7 +27,7 @@ class ModList(object):
         if v1 == v2:
             return 0
         spl1, spl2 = [int(a) for a in v1.split('.')], [int(a) for a in v2.split('.')]
-        for i in xrange(len(spl1)):
+        for i in range(len(spl1)):
             if spl1[i] == spl2[i]:
                 continue
             if spl1[i] < spl2[i]:
@@ -93,7 +93,6 @@ class ModList(object):
                             raise RuntimeError('Dependency failed! Loading %s, needs %s version > %s but found %s' % (
                                 mod.name, dependee.name, dep[2], dependee.version))
                     else:
-                        print
                         raise RuntimeError('What is %s?' % dep[1])
 
                 if not fail:

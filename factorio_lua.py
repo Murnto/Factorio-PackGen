@@ -23,8 +23,7 @@ function require (module)
     -- try getting module from internal strings
 end
         """)
-        # self.lua.execute('package.path = "./?.lua;" .. package.path')
-        print list(self.lua.globals()['package']['loaded'])
+        print(list(self.lua.globals()['package']['loaded']))
         self.modlist = ModList()
 
         self._load_libs(self.lua)
@@ -49,18 +48,9 @@ end
 
     @staticmethod
     def require(lua, path, module):
-        # print 'Load %s from %s' % (module, path)
         os.chdir(path)
         if not lua.require(module):
             raise RuntimeError('Require failed: %s in %s' % (module, path))
-
-    def load(self, path, module):
-        # print 'Load %s from %s' % (module, path)
-        os.chdir(path)
-        with open('%s/%s.lua' % (path, module)) as f:
-            if not self.lua.execute(f.read()):
-                # raise RuntimeError('Require failed: %s in %s' % (module, path))
-                pass
 
     def get_data(self):
         return FactorioState.table_to_dict(self.lua.globals()['data']['raw'])
@@ -73,21 +63,20 @@ end
                 for fn in os.listdir(locale_dir):
                     fn = os.path.join(locale_dir, fn)
                     if os.path.isfile(fn) and fn.endswith('.cfg'):
-                        # print 'load', fn
                         locale.load(fn)
 
         for mod in self.modlist.mod_order:
-            print 'Load %s' % mod.title
+            print('Load %s' % mod.title)
             if os.path.exists(os.path.join(mod.path, 'data.lua')):
                 self.load_mod(mod.path, 'data')
 
         for mod in self.modlist.mod_order:
-            print 'Load %s' % mod.title
+            print('Load %s' % mod.title)
             if os.path.exists(os.path.join(mod.path, 'data-updates.lua')):
                 self.load_mod(mod.path, 'data-updates')
 
         for mod in self.modlist.mod_order:
-            print 'Load %s' % mod.title
+            print('Load %s' % mod.title)
             if os.path.exists(os.path.join(mod.path, 'data-final-fixes.lua')):
                 self.load_mod(mod.path, 'data-final-fixes')
 
@@ -103,7 +92,7 @@ end
 
     def save_gfx(self, path, data=None):
         if data is None:
-            print 'got data'
+            print('got data')
             data = self.get_data()
 
         for k, v in data.items():
@@ -114,7 +103,7 @@ end
                 icon_path = data['icon'].split('/')
 
                 if icon_path[0] not in self.modlist.path_map:
-                    print 'Unkown content path %s for %s/%s' % (icon_path[0], data['type'], data['name'])
+                    print('Unkown content path %s for %s/%s' % (icon_path[0], data['type'], data['name']))
                     continue
 
                 icon_path[0] = self.modlist.path_map[icon_path[0]]
@@ -125,7 +114,7 @@ end
                 FactorioState.mkdir_p(out_dir)
 
                 if os.path.exists(out_path):
-                    print 'Overwriting %s/%s' % (data['type'], data['name'])
+                    print('Overwriting %s/%s' % (data['type'], data['name']))
 
                 shutil.copy2(icon_path, out_path)
 

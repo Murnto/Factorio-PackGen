@@ -1,28 +1,12 @@
-import ConfigParser
-
-
-class FakeSecHead(object):
-    def __init__(self, fp):
-        self.fp = fp
-        self.sechead = '[default_section]\n'
-
-    def readline(self):
-        if self.sechead:
-            try:
-                return self.sechead
-            finally:
-                self.sechead = None
-        else:
-            return self.fp.readline()
-
+from configparser import RawConfigParser
 
 _conf, _crap = None, None
 
 
 def clear():
     global _conf, _crap
-    _conf = ConfigParser.RawConfigParser()
-    _crap = ConfigParser.RawConfigParser()
+    _conf = RawConfigParser()
+    _crap = RawConfigParser()
 
 
 def get_name(section, name):
@@ -30,8 +14,10 @@ def get_name(section, name):
 
 
 def load(csv):
-    conf = ConfigParser.RawConfigParser()
-    conf.readfp(FakeSecHead(open(csv)))
+    conf = RawConfigParser()
+    # utf-8-sig per https://bugs.python.org/issue7185#msg94346
+    with open(csv, encoding='utf-8-sig') as f:
+        conf.read_file(f)
 
     for sec in conf.sections():
         if not _conf.has_section(sec):
@@ -47,12 +33,12 @@ def load(csv):
             if not is_crap:
                 if _conf.has_option(sec, k):
                     if _conf.get(sec, k).lower() != v.lower():
-                        print 'Overwriting locale %s (%r -> %r)' % (k, _conf.get(sec, k), v)
+                        print('Overwriting locale %s (%r -> %r)' % (k, _conf.get(sec, k), v))
 
                 _conf.set(sec, k, v)
             else:
                 if _crap.has_option(sec, k):
-                    print 'Overwriting crap locale %s (%r -> %r)' % (k, _crap.get(sec, k), v)
+                    print('Overwriting crap locale %s (%r -> %r)' % (k, _crap.get(sec, k), v))
 
                 _crap.set(sec, k, v)
 
@@ -61,7 +47,7 @@ def merge():
     for sec in _crap.sections():
         for k, v in _crap.items(sec):
             if not _conf.has_option(sec, k):
-                print 'Using crap locale %s (%r)' % (k, v)
+                print('Using crap locale %s (%r)' % (k, v))
                 _conf.set(sec, k, v)
 
 

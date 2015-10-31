@@ -1,9 +1,8 @@
 import json
 
 
-class Mod(object):
+class Mod:
     def __init__(self, path):
-        super(Mod, self).__init__()
         self.path = path
 
         with open('%s/info.json' % self.path, 'r') as f:
