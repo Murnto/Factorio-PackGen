@@ -1,3 +1,4 @@
+from collections import OrderedDict
 import json
 import locale
 import os
@@ -18,6 +19,14 @@ def mkdir_p(path):
 
 def get_pack_dir(packid):
     return 'pack/%s' % packid
+
+
+def sort_dict(data, key):
+    obj = data[key]
+    data[key] = OrderedDict()
+
+    for k in sorted(obj):
+        data[key][k] = obj[k]
 
 
 def load_pack(packid, packtitle, factorio_path, mods_path=None):
@@ -45,6 +54,8 @@ def load_pack(packid, packtitle, factorio_path, mods_path=None):
         os.chdir(oldcwd)
 
     mkdir_p(pack_dir)
+
+    sort_dict(data, 'technology')
 
     with open('%s/out' % pack_dir, 'w') as f:
         f.write(json.dumps(data, indent=4))
