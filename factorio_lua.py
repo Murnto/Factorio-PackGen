@@ -1,9 +1,9 @@
 import os
 import shutil
-import errno
 from lupa import LuaRuntime
 import locale
 from modlist import ModList
+from util import mkdir_p
 
 
 class FactorioState(object):
@@ -111,19 +111,10 @@ end
 
                 out_dir = '%s/%s' % (path, data['type'])
                 out_path = '%s/%s.png' % (out_dir, data['name'])
-                FactorioState.mkdir_p(out_dir)
+                mkdir_p(out_dir)
 
                 if os.path.exists(out_path):
                     print('Overwriting %s/%s' % (data['type'], data['name']))
 
                 shutil.copy2(icon_path, out_path)
 
-    @staticmethod
-    def mkdir_p(path):
-        try:
-            os.makedirs(path)
-        except OSError as exc:  # Python >2.5
-            if exc.errno == errno.EEXIST and os.path.isdir(path):
-                pass
-            else:
-                raise

@@ -2,19 +2,9 @@ from collections import OrderedDict
 import json
 import locale
 import os
-import errno
 
 from factorio_lua import FactorioState
-
-
-def mkdir_p(path):
-    try:
-        os.makedirs(path)
-    except OSError as exc:
-        if exc.errno == errno.EEXIST and os.path.isdir(path):
-            pass
-        else:
-            raise
+from util import mkdir_p
 
 
 def get_pack_dir(packid):
