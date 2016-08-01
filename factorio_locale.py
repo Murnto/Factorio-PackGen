@@ -1,3 +1,4 @@
+import chardet
 from configparser import RawConfigParser
 
 
@@ -11,9 +12,10 @@ class FactorioLocale:
 
     def load(self, csv):
         conf = RawConfigParser()
-        # utf-8-sig per https://bugs.python.org/issue7185#msg94346
-        with open(csv, encoding='utf-8-sig') as f:
-            conf.read_file(f)
+        with open(csv, 'rb') as f:
+            input_bytes = f.read()
+            decoded = input_bytes.decode(chardet.detect(input_bytes)['encoding'])
+            conf.read_string(decoded)
 
         for sec in conf.sections():
             if not self.conf.has_section(sec):
