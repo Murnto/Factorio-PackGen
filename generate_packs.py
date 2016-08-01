@@ -54,7 +54,7 @@ def load_pack(pack_config: PackConfig):
     fs.save_gfx('%s/icon' % pack_dir)
     locale.save('%s/localedump.cfg' % pack_dir)
 
-    pack_info = PackInfo(pack_config.name, pack_config.title, '', '', fs.modlist._loaded_names)
+    pack_info = PackInfo(pack_config.name, pack_config.title, '', fs.modlist)
 
     with open('%s/info.json' % pack_dir, 'w') as f:
         f.write(pack_info.to_json())

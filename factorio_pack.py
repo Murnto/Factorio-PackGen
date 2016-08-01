@@ -2,12 +2,19 @@ import json
 
 
 class PackInfo:
-    def __init__(self, name=None, title=None, version=None, description=None, mods=None):
+    def __init__(self, name=None, title=None, description=None, mods=None):
         self.name = name
         self.title = title
-        self.version = version
         self.description = description
-        self.mods = mods
+        self.mods = []
+
+        for mod in mods.mods:
+            self.mods.append({
+                'version': mod.version,
+                'name': mod.name,
+                'title': mod.title,
+                'description': mod.description,
+            })
 
     def to_json(self):
         return json.dumps(self.__dict__, indent=4)
