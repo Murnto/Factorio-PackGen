@@ -15,6 +15,7 @@ class FactorioLocale:
         with open(csv, 'rb') as f:
             input_bytes = f.read()
             decoded = input_bytes.decode(chardet.detect(input_bytes)['encoding'])
+            decoded = '[__global__]\n' + decoded
             conf.read_string(decoded)
 
         for sec in conf.sections():
