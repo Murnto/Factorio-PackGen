@@ -111,11 +111,18 @@ end
                 icon_path[0] = self.modlist.path_map[icon_path[0]]
                 icon_path = '/'.join(icon_path)
 
-                out_dir = '%s/%s' % (path, data['type'])
-                out_path = '%s/%s.png' % (out_dir, data['name'])
+                if 'type' not in data:
+                    # attempt to extract name and type from filepath
+                    path_els = v[:v.rindex('.')].split('/')
+                    itm_type, name = path_els[-2:]
+                else:
+                    itm_type, name = data['type'], data['name']
+
+                out_dir = '%s/%s' % (path, itm_type)
+                out_path = '%s/%s.png' % (out_dir, name)
                 mkdir_p(out_dir)
 
                 if os.path.exists(out_path):
-                    print('Overwriting %s/%s' % (data['type'], data['name']))
+                    print('Overwriting %s/%s' % (itm_type, name))
 
                 shutil.copy2(icon_path, out_path)

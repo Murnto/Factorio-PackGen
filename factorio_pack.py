@@ -26,5 +26,6 @@ class PackConfig:
         self.title = None
         self.factorio_path = None
         self.mods_path = None
+        self.difficulty = None
 
         self.__dict__.update(config)

@@ -20,6 +20,26 @@ def sort_dict(data, key):
         data[key][k] = obj[k]
 
 
+def extract_difficulty_recipes(data, difficulty):
+    for k in data['recipe']:
+        v = data['recipe'][k]
+        if difficulty in v:
+            v.update(v[difficulty])
+
+    # How does technology scale?
+
+    # More dirty hacks for 0.15 :)
+
+    for k in data['boiler']:
+        v = data['boiler'][k]
+
+        if 'energy_source' in v:
+            if 'burner' in v:
+                v['burner'].update(v['energy_source'])
+            else:
+                v['burner'] = v['energy_source']
+
+
 def load_pack(pack_config: PackConfig):
     if pack_config.mods_path is None:
         pack_config.mods_path = os.path.join(pack_config.factorio_path, 'mods')
@@ -47,6 +67,9 @@ def load_pack(pack_config: PackConfig):
     mkdir_p(pack_dir)
 
     sort_dict(data, 'technology')
+
+    if pack_config.difficulty:
+        extract_difficulty_recipes(data, pack_config.difficulty)
 
     with open('%s/out' % pack_dir, 'w') as f:
         f.write(json.dumps(data, indent=4))
