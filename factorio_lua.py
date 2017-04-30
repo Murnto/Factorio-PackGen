@@ -1,7 +1,11 @@
 import os
 import shutil
-
+from collections import OrderedDict
+import sys
+orig_dlflags = sys.getdlopenflags()
+sys.setdlopenflags(258)
 from lupa import LuaRuntime
+sys.setdlopenflags(orig_dlflags)
 
 from factorio_locale import FactorioLocale
 from factorio_modlist import FactorioModList
@@ -15,21 +19,10 @@ class FactorioState(object):
         super(FactorioState, self).__init__()
         self.factorio_path = factorio_path
         self.locale = locale
-        self.lua = LuaRuntime(unpack_returned_tuples=True)
+        self.data = None
 
-        self.lua.execute("""
-local old_require = require
-function require (module)
-    local ok, m = pcall (old_require, module)
-    -- if ok then
-        return m
-    -- end
-    -- try getting module from internal strings
-end
-        """)
         self.modlist = FactorioModList()
 
-        self._load_libs(self.lua)
         self.modlist.add_mod('%s/data/base/' % self.factorio_path)
 
     @staticmethod
@@ -43,12 +36,6 @@ end
                 ret[k] = v
         return ret
 
-    def _load_libs(self, lua):
-        lib_dir = '%s/data/core/lualib/' % self.factorio_path
-        for lib in FactorioState.LUA_LIBS:
-            FactorioState.require(lua, lib_dir, lib)
-        FactorioState.require(lua, '%s/data/core' % self.factorio_path, 'data')
-
     @staticmethod
     def require(lua, path, module):
         os.chdir(path)
@@ -56,7 +43,7 @@ end
             raise RuntimeError('Require failed: %s in %s' % (module, path))
 
     def get_data(self):
-        return FactorioState.table_to_dict(self.lua.globals()['data']['raw'])
+        return self.data
 
     def load_mods(self):
         # load locale
@@ -68,29 +55,36 @@ end
                     if os.path.isfile(fn) and fn.endswith('.cfg'):
                         self.locale.load(fn)
 
-        for mod in self.modlist.mod_order:
-            print('Load %s' % mod.title)
-            if os.path.exists(os.path.join(mod.path, 'data.lua')):
-                self.load_mod(mod.path, 'data')
+        old = os.path.abspath(os.curdir)
+        os.chdir('factorio-lua-tools')
 
-        for mod in self.modlist.mod_order:
-            print('Load %s' % mod.title)
-            if os.path.exists(os.path.join(mod.path, 'data-updates.lua')):
-                self.load_mod(mod.path, 'data-updates')
+        lua = LuaRuntime(unpack_returned_tuples=True)
+        loader = lua.require('loader')
 
-        for mod in self.modlist.mod_order:
-            print('Load %s' % mod.title)
-            if os.path.exists(os.path.join(mod.path, 'data-final-fixes.lua')):
-                self.load_mod(mod.path, 'data-final-fixes')
+        # TODO this is awful
+        lua.execute('defines = {}')
+        lua.execute('defines.difficulty_settings = {}')
+        lua.execute('defines.difficulty_settings.recipe_difficulty = {}')
+        lua.execute('defines.difficulty_settings.recipe_difficulty.normal = 1')
+        lua.execute('defines.difficulty_settings.recipe_difficulty.expensive = 2')
+        lua.execute('defines.difficulty_settings.technology_difficulty = {}')
+        lua.execute('defines.difficulty_settings.technology_difficulty.normal = 1')
+        lua.execute('defines.difficulty_settings.technology_difficulty.expensive = 2')
+        lua.execute('defines.direction = {}')
+        lua.execute('defines.direction.north = 0')
+        lua.execute('defines.direction.east = 1')
+        lua.execute('defines.direction.south = 2')
+        lua.execute('defines.direction.west = 3')
+        lua.execute('function log(x) end')
 
-    def load_mod(self, path, name):
-        important = [u'table', u'io', u'math', u'debug', u'package', u'_G', u'python', u'string', u'os', u'coroutine',
-                     u'bit32', u'util', u'autoplace_utils']
-        for p in list(self.lua.globals()['package']['loaded']):
-            if p not in important:
-                del self.lua.globals()['package']['loaded'][p]
+        core_path = '%s/data/core/' % self.factorio_path
+        mod_paths = [mod.path for mod in self.modlist.mod_order]
 
-        self.require(self.lua, path, name)
+        loader.load_data(lua.table_from([core_path] + mod_paths))
+
+        os.chdir(old)
+
+        self.data = FactorioState.table_to_dict(loader.data)
 
     def save_gfx(self, path, data=None):
         if data is None:
@@ -98,9 +92,8 @@ end
             data = self.get_data()
 
         for k, v in data.items():
-            if type(v) is dict:
+            if type(v) is dict or type(v) is OrderedDict:
                 self.save_gfx(path, v)
-                pass
             elif k == 'icon':
                 icon_path = data['icon'].split('/')
 

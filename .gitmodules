@@ -1,0 +1,3 @@
+[submodule "factorio-lua-tools"]
+	path = factorio-lua-tools
+	url = https://github.com/Murnto/factorio-lua-tools
